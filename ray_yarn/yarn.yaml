@@ -1,0 +1,55 @@
+yarn:
+  specification: null        # A path to a skein specification yaml file.
+                             # Overrides the following configuration if given.
+
+  name: ray                  # Application name
+  queue: default             # Yarn queue to deploy to
+  environment: null          # The Python environment to use
+  tags: []                   # List of strings to tag applications
+  user: ''                   # The user to submit the application on behalf of,
+                             # leave as empty string for current user.
+
+  # Common configurations for both head and worker. head and worker can override them.
+  # Check up-to-date configurations by running "ray start ..."
+  num-cpus: 1                # Number of CPUs of node
+  num-gpus: 1                # Number of GPUs of node
+  memory: 2GiB               # Amount of memory
+  ### Custom resources ###
+  # resources:
+  #   res1: 1.0
+  #   res2: 2.0
+  ### Custom resources ###
+
+  # object-store-memory:     # Amount of memory to start the object store with. By default, this is automatically set
+                             # based on available system memory.
+  # plasma-directory:        # Object store directory for memory mapped files
+  # include-dashboard:       # Boolean flag to start ray dashboard GUI. By default, the dashboard is started
+  # dashboard-host:          # The host to bind the dashboard server to, either localhost(127.0.0.1) or 0.0.0.0. By
+                             # default, this is localhost.
+  # dashboard-port:          # The port to bind the dashboard server to. Defaults to 8265
+
+  # object-manager-port:     # The port to use for starting the object manager
+  # node-manager-port:       # The port to use for starting the node manager
+  # gcs-server-port:         # Port for the server
+  # min-worker-port:         # The lowest port number that workers will bind on
+  # max-worker-port:         # The highest port number that workers will bind on
+  # worker-port-list:        # A comma-separated list of open ports for workers to bind on. Overrides 'min-worker-port'
+                             # and 'max-worker-port'.
+
+  # autoscaling-config:      # The file that contains the autoscaling config
+  # no-redirect-output       # Do not redirect non-worker stdout and stderr to files
+  # plasma-store-socket-name # Socket name of the plasma store
+  # raylet-socket-name       # Socket name of raylet process
+
+  # enable-object-reconstruction: # Reconstruction object when it's lost
+
+  # temp-dir                 # Root temporary directory for the Ray process.
+  
+  # no-monitor               # If True, the ray autoscaler monitor for this cluster will not be started.
+
+  head:                      # Specifications of head container, override above common configurations
+    port: 6379
+
+  worker:                    # Specifications of worker containers, override above common configurations
+    count: 0                 # Number of workers to start on initialization
+    restarts: -1             # Allowed number of restarts, -1 for unlimited
