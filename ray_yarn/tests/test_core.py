@@ -1,5 +1,5 @@
 import pytest
-
+from ray.ray_constants import DEFAULT_DASHBOARD_IP, DEFAULT_DASHBOARD_PORT
 from ray_yarn import config, core
 
 
@@ -112,3 +112,64 @@ def test_lookup():
     assert "unknown prefix" in str(ee)
 
 
+@pytest.mark.usefixtures("load_config")
+def test_ray_runtime_cfg():
+    cfg = core.RayRuntimeConfig()
+    assert cfg.num_cpus is None
+    assert len(cfg.__dict__) == 28
+    cfg2 = core.RayRuntimeConfig(num_cpus=15, no_redirect_output=True)
+    assert cfg2.num_cpus == 15
+    assert cfg2.no_redirect_output
+
+
+def cfg_assert_defaults(cfg):
+    assert cfg.num_cpus == 1
+    assert cfg.min_worker_port == core.RayRuntimeConfig.MIN_WORKER_PORT
+    assert cfg.max_worker_port == core.RayRuntimeConfig.MAX_WORKER_PORT
+    assert cfg.dashboard_host == DEFAULT_DASHBOARD_IP
+    assert cfg.dashboard_port == DEFAULT_DASHBOARD_PORT
+
+
+CUSTOM_MIN_PORT = 10004
+CUSTOM_MAX_PORT = 20004
+CUSTOM_DASH_HOST = "192.168.1.1"
+CUSTOM_DASH_PORT = 8765
+CUSTOM_NUM_CPUS = 13
+
+
+def cfg_assert_customs(cfg):
+    assert cfg.min_worker_port == CUSTOM_MIN_PORT
+    assert cfg.max_worker_port == CUSTOM_MAX_PORT
+    assert cfg.dashboard_host == CUSTOM_DASH_HOST
+    assert cfg.dashboard_port == CUSTOM_DASH_PORT
+    assert cfg.num_cpus == CUSTOM_NUM_CPUS
+
+
+@pytest.mark.usefixtures("load_config")
+def test_ray_to_head_cfg():
+    cfg = core.RayRuntimeConfig()
+    head_cfg = cfg.to_head_cfg()
+    cfg_assert_defaults(head_cfg)
+    cfg2 = core.RayRuntimeConfig(min_worker_port=CUSTOM_MIN_PORT, max_worker_port=CUSTOM_MAX_PORT,
+                                 dashboard_host=CUSTOM_DASH_HOST, dashboard_port=CUSTOM_DASH_PORT)
+    config.head_configs["num_cpus"] = CUSTOM_NUM_CPUS
+    head_cfg2 = cfg2.to_head_cfg()
+    cfg_assert_customs(head_cfg2)
+    del config.head_configs["num_cpus"]
+
+
+@pytest.mark.usefixtures("load_config")
+def test_ray_to_worker_cfg():
+    cfg = core.RayRuntimeConfig()
+    worker_cfg = cfg.to_worker_cfg()
+    cfg_assert_defaults(worker_cfg)
+    cfg2 = core.RayRuntimeConfig(min_worker_port=CUSTOM_MIN_PORT, max_worker_port=CUSTOM_MAX_PORT,
+                                 dashboard_host=CUSTOM_DASH_HOST, dashboard_port=CUSTOM_DASH_PORT)
+    config.worker_configs["num_cpus"] = CUSTOM_NUM_CPUS
+    worker_cfg2 = cfg2.to_worker_cfg()
+    cfg_assert_customs(worker_cfg2)
+    del config.worker_configs["num_cpus"]
+
+
+@pytest.mark.usefixtures("load_config")
+def test_yarn_cluster(skein_client):

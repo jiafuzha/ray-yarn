@@ -73,3 +73,36 @@ def test_replace_hyphen():
     assert "num_cpus" in new_dct["yarn"]
     assert "object_store_memory" in new_dct["yarn"]
     assert "num_cpus" in new_dct["yarn"]["sub_head"]
+
+
+def test_parse_memory():
+    size = "120"
+    assert config.parse_memory(size) == 120
+    size = "120B"
+    assert config.parse_memory(size) == 120
+    size = "120M"
+    assert config.parse_memory(size) == 120 * config.MEMORY_SIZE_UNITS['M']
+    size = "120m"
+    assert config.parse_memory(size) == 120 * config.MEMORY_SIZE_UNITS['M']
+    size = "120mb"
+    assert config.parse_memory(size) == 120 * config.MEMORY_SIZE_UNITS['M']
+    size = "120MB"
+    assert config.parse_memory(size) == 120 * config.MEMORY_SIZE_UNITS['M']
+    size = "1000KB"
+    assert config.parse_memory(size) == 1000 * config.MEMORY_SIZE_UNITS['K']
+    size = "1000b"
+    assert config.parse_memory(size) == 1000 * config.MEMORY_SIZE_UNITS['B']
+    size = "200kib"
+    assert config.parse_memory(size) == 200 * config.MEMORY_SIZE_UNITS['Ki']
+    size = "200Mib"
+    assert config.parse_memory(size) == 200 * config.MEMORY_SIZE_UNITS['Mi']
+    ee: Exception = None
+    size = "200KIb"
+    try:
+        config.parse_memory(size)
+    except ValueError as e:
+        ee = e
+    assert ee is not None
+    msg = str(ee)
+    assert size in msg
+    assert ",".join(config.MEMORY_SIZE_UNITS.keys()) in msg

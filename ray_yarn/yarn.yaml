@@ -46,10 +46,13 @@ yarn:
   # temp-dir                 # Root temporary directory for the Ray process.
   
   # no-monitor               # If True, the ray autoscaler monitor for this cluster will not be started.
+  # redis-password           # Redis password
+  # redis-max-memory         # Redis max memory
+  # redis-shard-ports        # Redis shard ports
 
   head:                      # Specifications of head container, override above common configurations
     port: 6379
 
   worker:                    # Specifications of worker containers, override above common configurations
-    count: 0                 # Number of workers to start on initialization
-    restarts: -1             # Allowed number of restarts, -1 for unlimited
+    initial-instances: 0     # Number of workers to start on initialization
+    max-restarts: -1         # Allowed number of restarts, -1 for unlimited
