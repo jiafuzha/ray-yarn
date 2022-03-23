@@ -12,7 +12,7 @@ yarn:
   # Common configurations for both head and worker. head and worker can override them.
   # Check up-to-date configurations by running "ray start ..."
   num-cpus: 1                # Number of CPUs of node
-  num-gpus: 1                # Number of GPUs of node
+  num-gpus: 0                # Number of GPUs of node
   memory: 2GiB               # Amount of memory
   ### Custom resources ###
   # resources:

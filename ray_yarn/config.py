@@ -14,7 +14,12 @@ CONFIG_NAME_HEAD = "head"
 CONFIG_NAME_WORKER = "worker"
 # find yarn.yaml from ~/.config/ray/, /etc/ray/ and package
 # copy it to ~/.config/ray/ if it doesn't exist
-USER_CONFIG_LOC = os.path.expanduser("~/.config/ray")
+# handle user home dir inside container
+USER_HOME = os.path.expanduser("~")
+if "USER" in os.environ and os.environ["USER"] not in USER_HOME:
+    USER_HOME = USER_HOME + ('/' if USER_HOME[len(USER_HOME)-1:] != '/' else '') + os.environ["USER"]
+
+USER_CONFIG_LOC = USER_HOME + "/.config/ray"
 PATHS = [USER_CONFIG_LOC, "/etc/ray", os.path.dirname(os.path.realpath(__file__))]
 
 MEMORY_SIZE_UNITS = {

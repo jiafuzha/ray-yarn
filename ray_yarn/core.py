@@ -2,33 +2,51 @@ import weakref
 from typing import Optional, Dict, List
 from inspect import signature, Parameter
 from copy import deepcopy
+import time
 import warnings
 from urllib.parse import urlparse
 import json
-from contextlib import contextmanager
-from ray.ray_constants import DEFAULT_DASHBOARD_IP, DEFAULT_DASHBOARD_PORT
 from . import config
 from .config import CONFIG_NAME_HEAD, CONFIG_NAME_WORKER
 import skein
 
 _EXCLUDE_ARG_LIST = ["self", "num_cpus", "num_gpus", "memory", "initial_instances", "max_restarts"]
-_EXCLUDE_ARG_LIST_WORKER = _EXCLUDE_ARG_LIST + ["gcs-server-port", "port", "include-dashboard", "dashboard-host",
-                                                "dashboard-port"]
+_EXCLUDE_ARG_LIST_WORKER = _EXCLUDE_ARG_LIST + ["gcs_server_port", "port", "include_dashboard", "dashboard_host",
+                                                "dashboard_port"]
+_IGNORE_ARG_VALUE_LIST = ["head", "block"]
 
+_RAY_HEAD_ADDRESS = "address"
+
+_RAY_REDIS_PASSWORD = "redis_password"
+
+
+def _get_or_wait_kv(app_client, key, timeout):
+    stime = 1
+    value = app_client.kv.get(key)
+    while value is None and timeout > 0:
+        time.sleep(stime)
+        value = app_client.kv.get(key)
+        timeout -= stime
+    if value is None:
+        raise ValueError("cannot get key %s from kv store" % key)
+    return value
 
 
 def _append_args(key, value, args_line):
-    args_line.append(" --")
-    args_line.append(key.replace('_', '-'))
-    args_line.append('=')
+    arg = ["--", key.replace('_', '-')]
+    if key in _IGNORE_ARG_VALUE_LIST:
+        args_line.append("".join(arg))
+        return
+    arg.append('=')
     if isinstance(value, str):
         value = value if value.find(' ') < 0 else "'" + value + "'"
-        args_line.append(value)
+        arg.append(value)
     elif isinstance(value, dict):
         value = json.dumps(value)
-        args_line.append("'" + value + "'")
+        arg.append("'" + value + "'")
     else:
-        args_line.append(str(value))
+        arg.append(str(value))
+    args_line.append("".join(arg))
 
 
 def _get_skein_client(skein_client=None, security=None):
@@ -86,11 +104,11 @@ def _files_and_build_script(environment):
 
 def _construct_args(runtime_cfg, head):
     excluded = _EXCLUDE_ARG_LIST if head else _EXCLUDE_ARG_LIST_WORKER
-    args_line = []
-    for k, v in vars(runtime_cfg):
+    args_list = []
+    for k, v in vars(runtime_cfg).items():
         if (k not in excluded) and v is not None:
-            _append_args(k, v, args_line)
-    return "".join(args_line)
+            _append_args(k, v, args_list)
+    return args_list
 
 
 def _make_specification(**kwargs):
@@ -137,7 +155,7 @@ def _make_specification(**kwargs):
         ),
         max_restarts=0,
         files=files,
-        script=build_script("start --head --block " + _construct_args(head_cfg, True)),
+        script=build_script("start --head --block " + " ".join(_construct_args(head_cfg, True))),
     )}
     worker_cfg = cfg.to_worker_cfg()
     services["ray.worker"] = skein.Service(
@@ -148,7 +166,7 @@ def _make_specification(**kwargs):
         max_restarts=worker_cfg.max_restarts,
         depends=["ray.head"],
         files=files,
-        script=build_script("start --block " + _construct_args(worker_cfg, False))
+        script=build_script("start --block " + " ".join(_construct_args(worker_cfg, False)))
     )
     spec = skein.ApplicationSpec(
         name=name, queue=queue, tags=tags, user=user, services=services
@@ -279,7 +297,7 @@ class RayRuntimeConfig(Value):
         resources: Optional[Dict[str, float]] = None,
         memory: Optional[int] = None,
         port: Optional[int] = None,
-        initial_instances: Optional[int] = None,
+        initial_instances: Optional[int] = 0,
         object_store_memory: Optional[int] = None,
         plasma_directory: Optional[str] = None,
         include_dashboard: Optional[bool] = None,
@@ -312,14 +330,15 @@ class RayRuntimeConfig(Value):
 
     @staticmethod
     def _set_default_values(new_cfg):
-        if new_cfg.dashboard_host is None:
-            new_cfg.dashboard_host = DEFAULT_DASHBOARD_IP
-        if new_cfg.dashboard_port is None:
-            new_cfg.dashboard_port = DEFAULT_DASHBOARD_PORT
-        if new_cfg.min_worker_port is None:
-            new_cfg.min_worker_port = RayRuntimeConfig.MIN_WORKER_PORT
-        if new_cfg.max_worker_port is None:
-            new_cfg.max_worker_port = RayRuntimeConfig.MAX_WORKER_PORT
+        pass
+        # if new_cfg.dashboard_host is None:
+        #     new_cfg.dashboard_host = DEFAULT_DASHBOARD_IP
+        # if new_cfg.dashboard_port is None:
+        #     new_cfg.dashboard_port = DEFAULT_DASHBOARD_PORT
+        # if new_cfg.min_worker_port is None:
+        #     new_cfg.min_worker_port = RayRuntimeConfig.MIN_WORKER_PORT
+        # if new_cfg.max_worker_port is None:
+        #     new_cfg.max_worker_port = RayRuntimeConfig.MAX_WORKER_PORT
 
     def to_head_cfg(self):
         head_cfg = deepcopy(self)
@@ -413,13 +432,30 @@ class YarnCluster(object):
             tags=tags,
             user=user
         )
+        self._requested = set()
         self._skein_client = skein_client
         self._start_cluster()
+        self._home_ip = None
+        self._redis_password = None
         self._finalizer = weakref.finalize(self, self.application_client.shutdown)
 
     @property
     def app_id(self):
         return self.application_client.id
+
+    def get_home_ip(self, timeout=30):
+        if self._home_ip is not None:
+            return self._home_ip
+        value = _get_or_wait_kv(self.application_client, _RAY_HEAD_ADDRESS, timeout)
+        self._home_ip = value.decode().split(':')[0]
+        return self._home_ip
+
+    def get_redis_password(self, timeout=30):
+        if self._redis_password is not None:
+            return self._redis_password
+        value = _get_or_wait_kv(self.application_client, _RAY_REDIS_PASSWORD, timeout)
+        self._redis_password = value.decode()
+        return self._redis_password
 
     def _start_cluster(self):
         """Start the cluster and initialize state"""

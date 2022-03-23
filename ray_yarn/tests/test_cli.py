@@ -54,6 +54,7 @@ def run_command(command, error=True):
 
 def test_start(capfd):
     run_command("start --head --port=6380 "
+                "--min-worker-port=10005 "
                 "--resources={\"name\": \"messenger\", \"playstore\": true, \"company\": \"Facebook\", \"price\": 100}")
 
 

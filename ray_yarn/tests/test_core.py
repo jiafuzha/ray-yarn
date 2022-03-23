@@ -1,4 +1,7 @@
+import time
+
 import pytest
+import ray
 from ray.ray_constants import DEFAULT_DASHBOARD_IP, DEFAULT_DASHBOARD_PORT
 from ray_yarn import config, core
 
@@ -171,5 +174,20 @@ def test_ray_to_worker_cfg():
     del config.worker_configs["num_cpus"]
 
 
+@ray.remote
+def my_function():
+    return 1
+
+
 @pytest.mark.usefixtures("load_config")
 def test_yarn_cluster(skein_client):
+    with core.YarnCluster(environment="/home/jiafu/Desktop/ray-yarn/ray-yarn.tar.gz") as yarn:
+        yarn.scale(1)
+        ip = yarn.get_home_ip()
+        redis_password = yarn.get_redis_password()
+        ray.init(address='ray://%s:10001' % ip)
+        ref = my_function.remote()
+        print(ray.get(ref))
+
+        time.sleep(10)
+

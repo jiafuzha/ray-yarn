@@ -69,7 +69,7 @@ def test_replace_hyphen():
             }
         }
     }
-    new_dct = config.replace_hyphen(dct)
+    new_dct = config.replace_hyphen_with_dash(dct)
     assert "num_cpus" in new_dct["yarn"]
     assert "object_store_memory" in new_dct["yarn"]
     assert "num_cpus" in new_dct["yarn"]["sub_head"]

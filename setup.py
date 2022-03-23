@@ -10,7 +10,7 @@ with open("README.rst") as f:
 target_file = "./ray_yarn/__init__.py"
 
 version = "Unknown"
-version_pattern = re.compile(r"^[^#]*__version__[^=]*=\s*(\S+)\s*")
+version_pattern = re.compile(r"^[^#]*__version__[^=]*=\s*['\"]+([^'\"]+)['\"]+\s*")
 with open(target_file) as f:
     for line in f:
         match = version_pattern.match(line)
