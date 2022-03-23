@@ -15,7 +15,7 @@ import skein
 from skein.utils import humanize_timedelta, format_table
 import ray_yarn
 from ray_yarn import core
-from .core import _append_args, _get_skein_client, _RAY_HEAD_ADDRESS, _RAY_REDIS_PASSWORD, _get_or_wait_kv
+from .core import _append_args, _get_skein_client, _RAY_HEAD_ADDRESS, _get_or_wait_kv
 
 # search type from annotation in format "typing.Union[...]", "<class '...'>", or "typing...."
 # E.g., typing.Union[str, NoneType], <class 'int'> and typing.Dict
@@ -167,9 +167,6 @@ def _construct_args(is_head, app_client, args_list, **kwargs):
     if not is_head:
         value = _get_or_wait_kv(app_client, _RAY_HEAD_ADDRESS, 30)
         _append_args(_RAY_HEAD_ADDRESS, value.decode(), args_list)
-        if _RAY_REDIS_PASSWORD not in args_list:
-            value = _get_or_wait_kv(app_client, _RAY_REDIS_PASSWORD, 30)
-            _append_args(_RAY_REDIS_PASSWORD, value.decode(), args_list)
 
 
 def _get_ip_address():
@@ -235,8 +232,6 @@ def start(*args, **kwargs):
         port = DEFAULT_PORT if "port" not in kwargs else kwargs["port"]
         value = "%s:%s" % (_get_ip_address(), port)
         app_client.kv[_RAY_HEAD_ADDRESS] = value.encode()
-        redis_pwd = REDIS_DEFAULT_PASSWORD if _RAY_REDIS_PASSWORD not in kwargs else kwargs[_RAY_REDIS_PASSWORD]
-        app_client.kv[_RAY_REDIS_PASSWORD] = redis_pwd.encode()
 
     log_dir = "." if "LOG_DIRS" not in os.environ else os.environ["LOG_DIRS"].split(',')[0]
     with open(log_dir + "/runtime.log", "wb") as log_file:

@@ -17,8 +17,6 @@ _IGNORE_ARG_VALUE_LIST = ["head", "block"]
 
 _RAY_HEAD_ADDRESS = "address"
 
-_RAY_REDIS_PASSWORD = "redis_password"
-
 
 def _get_or_wait_kv(app_client, key, timeout):
     stime = 1
@@ -449,13 +447,6 @@ class YarnCluster(object):
         value = _get_or_wait_kv(self.application_client, _RAY_HEAD_ADDRESS, timeout)
         self._home_ip = value.decode().split(':')[0]
         return self._home_ip
-
-    def get_redis_password(self, timeout=30):
-        if self._redis_password is not None:
-            return self._redis_password
-        value = _get_or_wait_kv(self.application_client, _RAY_REDIS_PASSWORD, timeout)
-        self._redis_password = value.decode()
-        return self._redis_password
 
     def _start_cluster(self):
         """Start the cluster and initialize state"""
