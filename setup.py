@@ -31,4 +31,9 @@ setup(
     long_description=long_description,
     url="https://github.com/ray-project/ray_yarn",
     install_requires=install_requires,
-    zip_safe=False)
+    zip_safe=False,
+    entry_points="""
+        [console_scripts]
+        ray-yarn=ray_yarn.cli:main
+      """
+)

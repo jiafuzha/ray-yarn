@@ -1,0 +1,9 @@
+name: ray on yarn CI
+on: [push]
+jobs:
+  Test-in-Centos7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        run: echo "hello world"
+        
