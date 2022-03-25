@@ -4,6 +4,5 @@ jobs:
   Test-in-Centos7:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        run: echo "hello world"
+      - run: docker-compose version
         
