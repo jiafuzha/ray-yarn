@@ -1,8 +1,11 @@
 name: ray on yarn CI
 on: [push]
 jobs:
-  Test-in-Centos7:
+  Test:
     runs-on: ubuntu-latest
     steps:
-      - run: docker-compose version
-        
+      - name: check out code
+        uses: actions/checkout@v2
+      - run: ls -l .
+      - run: docker-compose -f ./continuous_integration/action/docker-compose.yml up -d
+      - run: docker ps
