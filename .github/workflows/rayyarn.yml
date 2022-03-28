@@ -15,5 +15,6 @@ jobs:
           echo "    volumes:" >> volumns.yml
           echo "      - ${GITHUB_WORKSPACE}:/home/testuser/ray-yarn" >> volumns.yml
           docker-compose -f ci/action/docker-compose.yml -f volumns.yml up -d
-      - run: docker-compose -f ci/action/docker-compose.yml exec -T -u testuser edge /root/run_command.sh ./ray-yarn/ci/action/install.sh
+      - run: docker-compose -f ci/action/docker-compose.yml exec -T -u testuser edge /root/run_command.sh ls -l ray-yarn
+      - run: docker-compose -f ci/action/docker-compose.yml exec -T -u testuser edge /root/run_command.sh ./ray-yarn/ci/action/install.sh 3.7
       - run: docker-compose -f ci/action/docker-compose.yml exec -u testuser edge /root/run_command.sh skein --version
