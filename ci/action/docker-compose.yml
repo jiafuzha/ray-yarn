@@ -1,0 +1,54 @@
+version: "3.5"
+
+networks:
+  default:
+    name: example.com
+
+services:
+  master:
+    image: jcrist/hadoop-testing-cdh6
+    user: root
+    environment:
+      - HADOOP_TESTING_CONFIG=${HADOOP_TESTING_CONFIG:-simple}
+    command: /root/startup.sh /etc/master.supervisord.conf
+    container_name: master
+    hostname: master
+    domainname: example.com
+    ports:
+      - 8020:8020    # NN
+      - 9000:9000    # NN
+      - 50070:50070  # NN webui
+      - 8088:8088    # RM webui
+    tmpfs:
+      - /tmp:noexec
+
+  worker:
+    image: jcrist/hadoop-testing-cdh6
+    user: root
+    environment:
+      - HADOOP_TESTING_CONFIG=${HADOOP_TESTING_CONFIG:-simple}
+    command: /root/startup.sh /etc/worker.supervisord.conf
+    container_name: worker
+    hostname: worker
+    domainname: example.com
+    ports:
+      - 50075:50075  # DN webui
+      - 8042:8042    # NM webui
+    tmpfs:
+      - /tmp:noexec
+
+  edge:
+    image: jcrist/hadoop-testing-cdh6
+    user: root
+    environment:
+      - HADOOP_TESTING_FIXUID=${HADOOP_TESTING_FIXUID:-1000}
+      - HADOOP_TESTING_FIXGID=${HADOOP_TESTING_FIXGID:-1000}
+      - HADOOP_TESTING_CONFIG=${HADOOP_TESTING_CONFIG:-simple}
+    command: /root/startup.sh /etc/edge.supervisord.conf
+    container_name: edge
+    hostname: edge
+    domainname: example.com
+    ports:
+      - 8888:8888  # jupyter or other things, as needed
+      - 8786:8786
+

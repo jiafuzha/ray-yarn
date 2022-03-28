@@ -4,10 +4,16 @@ jobs:
   Test:
     runs-on: ubuntu-latest
     steps:
-      - run: ls -l .
       - name: check out code
         uses: actions/checkout@v2
-      - run: pwd
-      - run: ls -l .
-      - run: docker-compose -f ./continuous_integration/action/docker-compose.yml up -d
-      - run: docker ps
+      - run: echo ${GITHUB_WORKSPACE}
+      - run: ls -l ${GITHUB_WORKSPACE}
+      - run: |
+          echo "version: \"3.5\"" >> volumns.yml
+          echo "services:" >> volumns.yml
+          echo "  edge:" >> volumns.yml
+          echo "    volumes:" >> volumns.yml
+          echo "      - ${GITHUB_WORKSPACE}:/home/testuser/ray-yarn" >> volumns.yml
+          docker-compose -f ci/action/docker-compose.yml -f volumns.yml up -d
+      - run: docker-compose -f ci/action/docker-compose.yml exec -u testuser edge /root/run_command.sh ./ray-yarn/ci/action/install.sh
+      - run: docker-compose -f ci/action/docker-compose.yml exec -u testuser edge /root/run_command.sh skein --version
