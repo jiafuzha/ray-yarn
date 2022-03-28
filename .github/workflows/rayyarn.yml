@@ -14,7 +14,10 @@ jobs:
           echo "  edge:" >> volumns.yml
           echo "    volumes:" >> volumns.yml
           echo "      - ${GITHUB_WORKSPACE}:/home/testuser/ray-yarn" >> volumns.yml
+          export HADOOP_TESTING_FIXUID=$(id -u)
+          export HADOOP_TESTING_FIXGID=$(id -g)
+          echo $USER
           docker-compose -f ci/action/docker-compose.yml -f volumns.yml up -d
-      - run: docker-compose -f ci/action/docker-compose.yml exec -T -u testuser edge /root/run_command.sh ls -l ray-yarn
+      - run: docker-compose -f ci/action/docker-compose.yml exec -T -u testuser edge /root/run_command.sh ls -l . && pwd
       - run: docker-compose -f ci/action/docker-compose.yml exec -T -u testuser edge /root/run_command.sh ./ray-yarn/ci/action/install.sh 3.7
       - run: docker-compose -f ci/action/docker-compose.yml exec -u testuser edge /root/run_command.sh skein --version
