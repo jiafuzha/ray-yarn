@@ -5,7 +5,7 @@ conda config --set always_yes yes --set changeps1 no
 conda update conda -n base
 
 conda create -n test-environment -c conda-forge \
-    pip \
+    ray-default \
     pytest \
     python=$1 \
     pyyaml \
@@ -13,8 +13,6 @@ conda create -n test-environment -c conda-forge \
     skein>=0.8.1 \
 
 source activate test-environment
-
-yes | pip install ray
 
 cd ~/ray-yarn
 python -m pip install -v --no-deps .
