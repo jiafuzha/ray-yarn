@@ -4,8 +4,10 @@ jobs:
   Test:
     runs-on: ubuntu-latest
     steps:
+      - run: ls -l .
       - name: check out code
         uses: actions/checkout@v2
+      - run: pwd
       - run: ls -l .
       - run: docker-compose -f ./continuous_integration/action/docker-compose.yml up -d
       - run: docker ps
