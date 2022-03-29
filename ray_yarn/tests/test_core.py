@@ -125,14 +125,6 @@ def test_ray_runtime_cfg():
     assert cfg2.no_redirect_output
 
 
-def cfg_assert_defaults(cfg):
-    assert cfg.num_cpus == 1
-    assert cfg.min_worker_port == core.RayRuntimeConfig.MIN_WORKER_PORT
-    assert cfg.max_worker_port == core.RayRuntimeConfig.MAX_WORKER_PORT
-    assert cfg.dashboard_host == DEFAULT_DASHBOARD_IP
-    assert cfg.dashboard_port == DEFAULT_DASHBOARD_PORT
-
-
 CUSTOM_MIN_PORT = 10004
 CUSTOM_MAX_PORT = 20004
 CUSTOM_DASH_HOST = "192.168.1.1"
@@ -150,9 +142,6 @@ def cfg_assert_customs(cfg):
 
 @pytest.mark.usefixtures("load_config")
 def test_ray_to_head_cfg():
-    cfg = core.RayRuntimeConfig()
-    head_cfg = cfg.to_head_cfg()
-    cfg_assert_defaults(head_cfg)
     cfg2 = core.RayRuntimeConfig(min_worker_port=CUSTOM_MIN_PORT, max_worker_port=CUSTOM_MAX_PORT,
                                  dashboard_host=CUSTOM_DASH_HOST, dashboard_port=CUSTOM_DASH_PORT)
     config.head_configs["num_cpus"] = CUSTOM_NUM_CPUS
@@ -163,9 +152,6 @@ def test_ray_to_head_cfg():
 
 @pytest.mark.usefixtures("load_config")
 def test_ray_to_worker_cfg():
-    cfg = core.RayRuntimeConfig()
-    worker_cfg = cfg.to_worker_cfg()
-    cfg_assert_defaults(worker_cfg)
     cfg2 = core.RayRuntimeConfig(min_worker_port=CUSTOM_MIN_PORT, max_worker_port=CUSTOM_MAX_PORT,
                                  dashboard_host=CUSTOM_DASH_HOST, dashboard_port=CUSTOM_DASH_PORT)
     config.worker_configs["num_cpus"] = CUSTOM_NUM_CPUS

@@ -6,17 +6,18 @@ jobs:
     steps:
       - name: check out code
         uses: actions/checkout@v2
-      - run: echo ${GITHUB_WORKSPACE}
-      - run: ls -l ${GITHUB_WORKSPACE}
-      - run: |
-          echo "version: \"3.5\"" >> volumns.yml
-          echo "services:" >> volumns.yml
-          echo "  edge:" >> volumns.yml
-          echo "    volumes:" >> volumns.yml
-          echo "      - ${GITHUB_WORKSPACE}:/home/testuser/ray-yarn" >> volumns.yml
-          export HADOOP_TESTING_FIXUID=$(id -u)
-          export HADOOP_TESTING_FIXGID=$(id -g)
-          echo $USER
-          docker-compose -f ci/action/docker-compose.yml -f volumns.yml up -d
-      - run: docker-compose -f ci/action/docker-compose.yml exec -T edge /root/run_command.sh ls -l -a /home/testuser/ray-yarn
-      - run: docker-compose -f ci/action/docker-compose.yml exec -T edge /root/run_command.sh /home/testuser/ray-yarn/ci/action/install.sh 3.7
+      - name: mount volumes and start up services
+        run: |
+            echo "version: \"3.5\"" >> volumns.yml
+            echo "services:" >> volumns.yml
+            echo "  edge:" >> volumns.yml
+            echo "    volumes:" >> volumns.yml
+            echo "      - ${GITHUB_WORKSPACE}:/home/testuser/ray-yarn" >> volumns.yml
+            export HADOOP_TESTING_FIXUID=$(id -u)
+            export HADOOP_TESTING_FIXGID=$(id -g)
+            echo $USER
+            docker-compose -f ci/action/docker-compose.yml -f volumns.yml up -d
+      - name: install test prerequisites 
+        run: docker-compose -f ci/action/docker-compose.yml exec -T edge /root/run_command.sh /home/testuser/ray-yarn/ci/action/install.sh 3.7
+      - name: run tests
+        run: docker-compose -f ci/action/docker-compose.yml exec -T edge /root/run_command.sh /home/testuser/ray-yarn/ci/action/run-tests.sh

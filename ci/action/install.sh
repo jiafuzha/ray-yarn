@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 set -xe
 
-export HOME=/home/testuser
-cd $HOME
-
-if [ -f .bash_profile ]; then
-  source .bash_profile
-fi
+_script="$(readlink -f ${BASH_SOURCE[0]})"
+_mydir="$(dirname $_script)"
+source $_mydir/load_testuser.sh
 
 conda config --set always_yes yes --set changeps1 no
 conda update conda -n base
