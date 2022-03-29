@@ -1,9 +1,7 @@
-import time
-
 import pytest
 import ray
-from ray.ray_constants import DEFAULT_DASHBOARD_IP, DEFAULT_DASHBOARD_PORT
 from ray_yarn import config, core
+from .conftest import check_is_shutdown
 
 
 def test_bad_value_object_varargs():
@@ -166,15 +164,15 @@ def my_function():
 
 
 @pytest.mark.usefixtures("load_config")
-def test_yarn_cluster(skein_client):
+def test_yarn_cluster(skein_client, conda_env):
     cfg = core.RayRuntimeConfig(redis_password="123456")
-    with core.YarnCluster(environment="/home/jiafu/Desktop/ray-yarn/ray-yarn.tar.gz",
+    with core.YarnCluster(environment=conda_env,
                           ray_runtime_cfg=cfg) as yarn:
         yarn.scale(1)
         ip = yarn.get_home_ip()
         ray.init(address='ray://%s:10001' % ip)
         ref = my_function.remote()
-        print(ray.get(ref))
+        assert 1 == ray.get(ref)
 
-        time.sleep(10)
+    check_is_shutdown(skein_client, yarn.app_id)
 

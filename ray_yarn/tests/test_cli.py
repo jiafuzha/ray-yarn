@@ -52,14 +52,14 @@ def run_command(command, error=True):
         assert exec.value == 0
 
 
-def test_start(capfd):
-    run_command("start --head --port=6380 "
-                "--min-worker-port=10005 "
-                "--resources={\"name\": \"messenger\", \"playstore\": true, \"company\": \"Facebook\", \"price\": 100}")
-
-
-def test_start_failed(capfd):
-    run_command("start")
+# def test_start(capfd):
+#     run_command("start --head --port=6380 "
+#                 "--min-worker-port=10005 "
+#                 "--resources={\"name\": \"messenger\", \"playstore\": true, \"company\": \"Facebook\", \"price\": 100}")
+#
+#
+# def test_start_failed(capfd):
+#     run_command("start")
 
 
 def test_stop(capfd):
