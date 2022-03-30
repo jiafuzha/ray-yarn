@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -xe
 
+# load env from testuser
 _script="$(readlink -f ${BASH_SOURCE[0]})"
 _mydir="$(dirname $_script)"
 source $_mydir/load_testuser.sh
@@ -22,5 +23,8 @@ cd ~/ray-yarn
 python -m pip install -v --no-deps .
 
 conda list
+
+# relax permission restriction due to fixuid changed user/group of testuser
+chmod -R 777 /home/testuser
 
 set +xe

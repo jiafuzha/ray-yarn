@@ -6,7 +6,7 @@ networks:
 
 services:
   master:
-    image: jcrist/hadoop-testing-cdh6
+    image: zjf2012docker/hadoop-cluster-for-ray
     user: root
     environment:
       - HADOOP_TESTING_CONFIG=${HADOOP_TESTING_CONFIG:-simple}
@@ -23,7 +23,7 @@ services:
       - /tmp:noexec
 
   worker:
-    image: jcrist/hadoop-testing-cdh6
+    image: zjf2012docker/hadoop-cluster-for-ray
     user: root
     environment:
       - HADOOP_TESTING_CONFIG=${HADOOP_TESTING_CONFIG:-simple}
@@ -38,7 +38,7 @@ services:
       - /tmp:noexec
 
   edge:
-    image: jcrist/hadoop-testing-cdh6
+    image: zjf2012docker/hadoop-cluster-for-ray
     user: root
     environment:
       - HADOOP_TESTING_FIXUID=${HADOOP_TESTING_FIXUID:-1000}
